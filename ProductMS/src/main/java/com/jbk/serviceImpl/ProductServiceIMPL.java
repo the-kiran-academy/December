@@ -26,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.jbk.dao.ProductDao;
 import com.jbk.entity.Product;
 import com.jbk.model.Category;
+import com.jbk.model.Charges;
+import com.jbk.model.FinalProduct;
 import com.jbk.model.ProductWithSC;
 import com.jbk.model.Supplier;
 import com.jbk.service.ProductService;
@@ -211,14 +213,84 @@ public class ProductServiceIMPL implements ProductService {
 		productWithSC.setProductPrice(product.getProductPrice());
 		productWithSC.setProductQty(product.getProductQty());
 
-		
-		Category category = restTemplate.getForObject("http://CATEGORY-SERVICE/category/get-category-by-id/"+product.getCategoryid(), Category.class);
-		
+		Category category = null;
+		Supplier supplier = null;
+		try {
+			category = restTemplate.getForObject(
+					"http://CATEGORY-SERVICE/category/get-category-by-id/" + product.getCategoryid(), Category.class);
+		} catch (IllegalStateException e) {
+			category = null;
+			System.out.println("Category Service Down");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			supplier = restTemplate.getForObject(
+					"http://SUPPLIER-SERVICE/supplier/get-supplier-by-id/" + product.getSupplierid(), Supplier.class);
+
+		} catch (IllegalStateException e) {
+			supplier = null;
+			System.out.println("Supplier Service Down");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		productWithSC.setCategory(category);
-		Supplier supplier = restTemplate.getForObject("http://SUPPLIER-SERVICE/supplier/get-supplier-by-id/"+product.getSupplierid(), Supplier.class);
+
 		productWithSC.setSupplier(supplier);
 
 		return productWithSC;
+	}
+
+	@Override
+	public FinalProduct getFinalProductById(String productId) {
+		Product product = getProductById(productId);
+		FinalProduct finalProduct = new FinalProduct();
+		Charges charges = new Charges();
+		Category category = null;
+		Supplier supplier = null;
+		try {
+			category = restTemplate.getForObject(
+					"http://CATEGORY-SERVICE/category/get-category-by-id/" + product.getCategoryid(), Category.class);
+		} catch (IllegalStateException e) {
+			category = null;
+			System.out.println("Category Service Down");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			supplier = restTemplate.getForObject(
+					"http://SUPPLIER-SERVICE/supplier/get-supplier-by-id/" + product.getSupplierid(), Supplier.class);
+
+		} catch (IllegalStateException e) {
+			supplier = null;
+			System.out.println("Supplier Service Down");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		
+		charges.setGst(category.getGst());
+		charges.setDeliveryCharge(category.getDeliveryCharge());
+
+		double discountAmount = (product.getProductPrice() * category.getDiscount()) / 100;
+		double gstAmount = (product.getProductPrice() * category.getGst()) / 100;
+
+		finalProduct.setProductId(productId);
+		finalProduct.setProductName(product.getProductName());
+		finalProduct.setSupplier(supplier);
+		finalProduct.setCategory(category);
+		finalProduct.setProductQty(product.getProductQty());
+		finalProduct.setProductPrice(product.getProductPrice());
+		finalProduct.setCharges(charges);
+
+		finalProduct.setDiscountAmount(discountAmount);
+		finalProduct.setFinalProductPrice(
+				(product.getProductPrice() + gstAmount + category.getDeliveryCharge()) - discountAmount);
+
+		return finalProduct;
 	}
 
 }

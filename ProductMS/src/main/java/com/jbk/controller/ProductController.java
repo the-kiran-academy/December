@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.jbk.entity.Product;
 import com.jbk.exception.ResourceAlreadyExistException;
+import com.jbk.model.FinalProduct;
 import com.jbk.model.ProductWithSC;
 import com.jbk.service.ProductService;
 
@@ -57,6 +58,13 @@ public class ProductController {
 	public ResponseEntity<ProductWithSC> getProductWithSC(@PathVariable String productId) {
 		ProductWithSC productWithSC = service.getProductWithSCByPid(productId);
 		return ResponseEntity.ok(productWithSC);
+
+	}
+
+	@GetMapping(value = "/get-final-product/{productId}")
+	public ResponseEntity<FinalProduct> getFinalProduct(@PathVariable String productId) {
+		FinalProduct finalProduct = service.getFinalProductById(productId);
+		return ResponseEntity.ok(finalProduct);
 
 	}
 
