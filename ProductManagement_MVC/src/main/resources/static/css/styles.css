@@ -11,7 +11,6 @@ font-family: 'Numans', sans-serif;
 }
 
 .container{
-height: 100%;
 align-content: center;
 }
 
@@ -86,4 +85,10 @@ color: white;
 
 .links a{
 margin-left: 4px;
+}
+
+img {
+	background-size: cover;
+	height: 100%;
+	width: 100%
 }
